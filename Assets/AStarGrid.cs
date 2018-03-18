@@ -4,9 +4,7 @@ using UnityEngine;
 
 public class AStarGrid : MonoBehaviour {
 
-    public bool onlyDisplayPathGizmos;
-    public Transform playerPosition;
-
+    public bool displayGridGizmos;
     public LayerMask unwalkableMask;
     public Vector2 gridWorldSize;
     public float nodeRadius;
@@ -15,7 +13,7 @@ public class AStarGrid : MonoBehaviour {
     float nodeDiameter;
     int gridSizeX, gridSizeY;
 
-    private void Start()
+    private void Awake()
     {
         nodeDiameter = nodeRadius * 2;
         gridSizeX = Mathf.RoundToInt( gridWorldSize.x / nodeDiameter);
@@ -85,44 +83,18 @@ public class AStarGrid : MonoBehaviour {
     }
 
 
-    public List<AStarNode> path;
     private void OnDrawGizmos()
     {
         Gizmos.DrawWireCube(transform.position, new Vector3(gridWorldSize.x, 1, gridWorldSize.y));
 
-        if (onlyDisplayPathGizmos)
+        if (grid != null && displayGridGizmos)
         {
-            if (path != null)
+            foreach (var node in grid)
             {
-                foreach (var node in path)
-                {
-                    Gizmos.color = Color.black;
-                    Gizmos.DrawCube(node.WorldPosition, Vector3.one * (nodeDiameter - .1f));
-                }
+                Gizmos.color = (node.Walkable) ? Color.white : Color.red;
+                Gizmos.DrawCube(node.WorldPosition, Vector3.one * (nodeDiameter - .1f));
             }
         }
-        else
-        {
 
-            if (grid != null)
-            {
-                AStarNode playerNode = NodeFromWorldPoint(playerPosition.position);
-
-                foreach (var node in grid)
-                {
-                    Gizmos.color = (node.Walkable) ? Color.white : Color.red;
-
-                    if (path != null)
-                    {
-                        if (path.Contains(node))
-                        {
-                            Gizmos.color = Color.black;
-                        }
-                    }
-
-                    Gizmos.DrawCube(node.WorldPosition, Vector3.one * (nodeDiameter - .1f));
-                }
-            }
-        }
     }
 }

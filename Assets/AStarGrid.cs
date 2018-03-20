@@ -4,11 +4,14 @@ using UnityEngine;
 
 public class AStarGrid : MonoBehaviour {
 
+    public TerrainType[] walkableRegions;
     public bool displayGridGizmos;
     public LayerMask unwalkableMask;
     public Vector2 gridWorldSize;
     public float nodeRadius;
 
+    Dictionary<int, int> walkableRegionsDictionary = new Dictionary<int, int>();
+    LayerMask walkableMask;
     AStarNode[,] grid;
     float nodeDiameter;
     int gridSizeX, gridSizeY;
@@ -18,6 +21,13 @@ public class AStarGrid : MonoBehaviour {
         nodeDiameter = nodeRadius * 2;
         gridSizeX = Mathf.RoundToInt( gridWorldSize.x / nodeDiameter);
         gridSizeY = Mathf.RoundToInt(gridWorldSize.y / nodeDiameter);
+
+        foreach (TerrainType region in walkableRegions)
+        {
+            walkableMask.value |= region.terrainMask.value;
+            walkableRegionsDictionary.Add( (int)Mathf.Log(region.terrainMask.value, 2), region.terrainPenalty);
+        }
+
         CreateGrid();
 
     }
@@ -61,7 +71,20 @@ public class AStarGrid : MonoBehaviour {
             {
                 Vector3 worldPoint = worldBottomLeft + Vector3.right * (x * nodeDiameter + nodeRadius) + Vector3.forward * (y * nodeDiameter + nodeRadius);
                 bool walkable = !(Physics.CheckSphere(worldPoint, nodeRadius, unwalkableMask));
-                grid[x, y] = new AStarNode(walkable, worldPoint, x,y);
+
+                int movementPenalty = 0;
+
+                if(walkable)
+                {
+                    Ray ray = new Ray(worldPoint + Vector3.up * 50, Vector3.down);
+                    RaycastHit hit;
+                    if(Physics.Raycast(ray,out hit, 100, walkableMask))
+                    {
+                        walkableRegionsDictionary.TryGetValue(hit.collider.gameObject.layer, out movementPenalty);
+                    }
+                }
+
+                grid[x, y] = new AStarNode(walkable, worldPoint, x,y, movementPenalty);
             }
         }
     }
@@ -97,4 +120,14 @@ public class AStarGrid : MonoBehaviour {
         }
 
     }
-}
+};
+
+
+[System.Serializable]
+public class TerrainType
+{
+    public LayerMask terrainMask;
+    public int terrainPenalty;
+
+};
+

@@ -12,14 +12,17 @@ public class AStarNode : IHeapItem<AStarNode> {
     public int GridX;
     public int GridY;
     public AStarNode Parent;
+    public int PenaltyValue;
     int heapIndex;
+    
 
-    public AStarNode ( bool walkable, Vector3 worldPos, int gridX, int gridY)
+    public AStarNode ( bool walkable, Vector3 worldPos, int gridX, int gridY, int penalty)
     {
         GridX = gridX;
         GridY = gridY;
         Walkable = walkable;
         WorldPosition = worldPos;
+        PenaltyValue = penalty;
     }
 
     public int FCost {  get { return GCost + HCost; } }
